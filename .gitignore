@@ -1,5 +1,6 @@
-work/
+﻿work/
 *.work
 *.txt
 !README.md
 !PUZZLE135.txt
+__pycache__/

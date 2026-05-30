@@ -2,13 +2,6 @@
 set -euo pipefail
 
 echo "=== Puzzle 135 Clore Kangaroo Runner ==="
-echo "WORKDIR=${WORKDIR}"
-echo "BUILD_DIR=${BUILD_DIR}"
-echo "SHARD_INDEX=${SHARD_INDEX}"
-echo "SHARD_BITS=${SHARD_BITS}"
-echo "GPU_IDS=${GPU_IDS}"
-echo "DP=${DP}"
-echo "WI=${WI}"
 
 mkdir -p "${WORKDIR}" "${BUILD_DIR}"
 
@@ -29,8 +22,37 @@ detect_ccap() {
   echo "${CCAP:-86}"
 }
 
+if [[ "${SHARD_INDEX:-random}" == "random" || -z "${SHARD_INDEX:-}" ]]; then
+  SHARD_INDEX="$(python3 - <<PY
+import secrets
+lo = int("${SHARD_MIN:-0}")
+hi = int("${SHARD_MAX:-511}")
+if lo < 0:
+    lo = 0
+if hi > 511:
+    hi = 511
+if hi < lo:
+    raise SystemExit("SHARD_MAX must be >= SHARD_MIN")
+print(lo + secrets.randbelow(hi - lo + 1))
+PY
+)"
+  echo "Random SHARD_INDEX selected: ${SHARD_INDEX}"
+else
+  echo "Manual SHARD_INDEX selected: ${SHARD_INDEX}"
+fi
+
 CCAP="${CCAP:-$(detect_ccap)}"
-echo "Using CUDA compute capability ccap=${CCAP}"
+
+echo "WORKDIR=${WORKDIR}"
+echo "BUILD_DIR=${BUILD_DIR}"
+echo "SHARD_INDEX=${SHARD_INDEX}"
+echo "SHARD_BITS=${SHARD_BITS}"
+echo "GPU_IDS=${GPU_IDS}"
+echo "DP=${DP}"
+echo "WI=${WI}"
+echo "CUDA compute capability=${CCAP}"
+
+echo "${SHARD_INDEX}" > "${WORKDIR}/selected-shard.txt"
 
 if [[ ! -d "${BUILD_DIR}/Kangaroo/.git" ]]; then
   echo "Cloning Kangaroo source..."

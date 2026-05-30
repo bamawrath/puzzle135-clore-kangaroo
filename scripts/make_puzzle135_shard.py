@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 import argparse
 
 PUZZLE_START = int("4000000000000000000000000000000000", 16)
@@ -6,7 +6,7 @@ PUZZLE_END   = int("7fffffffffffffffffffffffffffffffff", 16)
 PUBKEY = "02145d2611c823a396ef6712ce0f712f09b9b4f3135e3e0aa3230fb9b6d08d1e16"
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate JeanLucPons Kangaroo input file for BTC Puzzle 135 shard.")
+    parser = argparse.ArgumentParser(description="Generate Kangaroo input file for BTC Puzzle 135 shard.")
     parser.add_argument("--shard-index", type=int, required=True)
     parser.add_argument("--shard-bits", type=int, default=125)
     parser.add_argument("--out", required=True)
@@ -28,7 +28,6 @@ def main() -> None:
         f.write(f"{PUBKEY}\n")
 
     print(f"Wrote {args.out}")
-    print(f"Puzzle width : 2^{total_width.bit_length()-1}")
     print(f"Shard bits   : {args.shard_bits}")
     print(f"Total shards : {total_shards}")
     print(f"Shard index  : {args.shard_index}")

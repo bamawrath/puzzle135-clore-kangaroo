@@ -1,86 +1,60 @@
-# Puzzle 135 Clore Kangaroo Runner
+﻿# Puzzle 135 Clore Kangaroo
 
-Clore-ready Linux/CUDA runner for BTC Puzzle #135.
+Clore-ready GitHub source build for BTC Puzzle #135.
 
-## Why this package uses JeanLucPons/Kangaroo
+## Clore settings
 
-The uploaded `Etarkangaroo` source package is marked Windows-only and PureBasic-based. For Clore Linux/CUDA, this package instead builds the Linux JeanLucPons `Kangaroo` implementation inside a CUDA container.
+Use this public GitHub repo as the source.
 
-JeanLucPons/Kangaroo is limited to a 125-bit interval. Puzzle #135 is a 134-bit interval, so this runner splits Puzzle #135 into 512 separate 125-bit shards.
+Dockerfile path:
 
-## Puzzle 135 parameters
+Dockerfile
 
-Address:
+No custom command is needed.
 
-```text
-16RGFo6hjq9ym6Pj7N5H7L1NR1rVPJyw2v
-```
+## Random shard mode
 
-Public key:
+Default mode is random shard selection so Clore workers do not all start at shard 0.
 
-```text
+Recommended Clore environment variables:
+
+SHARD_INDEX=random
+SHARD_BITS=125
+SHARD_MIN=50
+SHARD_MAX=511
+GPU_IDS=0
+DP=40
+WI=300
+
+The container writes the selected shard to:
+
+/work/selected-shard.txt
+
+## Manual shard mode
+
+Use this when you want to assign a specific shard:
+
+SHARD_INDEX=181
+SHARD_BITS=125
+GPU_IDS=0
+DP=40
+WI=300
+
+Valid shard indexes:
+
+0 through 511
+
+## Puzzle 135 public key
+
 02145d2611c823a396ef6712ce0f712f09b9b4f3135e3e0aa3230fb9b6d08d1e16
-```
 
-Full range:
+## Puzzle 135 range
 
-```text
 4000000000000000000000000000000000
 7fffffffffffffffffffffffffffffffff
-```
 
-## Build locally
+## Notes
 
-```bash
-docker build -t puzzle135-kangaroo .
-```
+The full 134-bit interval is split into 512 shards of 125 bits each so the Linux Kangaroo build can process the search in chunks.
 
-## Run shard 0
-
-```bash
-docker run --rm --gpus all \
-  -e SHARD_INDEX=0 \
-  -e SHARD_BITS=125 \
-  -e GPU_IDS=0 \
-  -e DP=30 \
-  -e WI=300 \
-  -v "$PWD/work:/work" \
-  puzzle135-kangaroo
-```
-
-## Run a different shard
-
-```bash
-docker run --rm --gpus all \
-  -e SHARD_INDEX=123 \
-  -e SHARD_BITS=125 \
-  -e GPU_IDS=0 \
-  -e DP=30 \
-  -e WI=300 \
-  -v "$PWD/work:/work" \
-  puzzle135-kangaroo
-```
-
-## Useful environment variables
-
-| Variable | Default | Meaning |
-|---|---:|---|
-| `SHARD_INDEX` | `0` | Which 125-bit shard to search. Valid range is 0-511. |
-| `SHARD_BITS` | `125` | Interval width per shard. Keep 125 for JeanLucPons limit. |
-| `GPU_IDS` | `0` | GPU IDs passed to Kangaroo. Example: `0,1`. |
-| `DP` | `30` | Distinguished point bits. Tune per GPU/memory. |
-| `GRID` | unset | Optional Kangaroo `-g` grid string, for example `88,128`. |
-| `WI` | `300` | Work save interval in seconds. |
-| `RESUME` | `1` | Resume from existing work file if present. |
-| `FORCE_REBUILD` | `0` | Set to `1` to rebuild Kangaroo on container start. |
-| `CCAP` | auto | CUDA compute capability, auto-detected via `nvidia-smi` when possible. |
-
-## Clore notes
-
-Use a public GitHub repository containing this Dockerfile and scripts. On Clore, choose an NVIDIA GPU host and build/run the container with GPU access.
-
-For rented GPUs, keep a persistent volume mounted to `/work` so Kangaroo checkpoints survive restarts.
-
-## Operational note
-
-This is not a quick single-GPU solve. It is a checkpointed, shardable, long-running interval ECDLP search. Each shard should be logged so the same shard is not repeated across workers.
+For Clore, use SHARD_INDEX=random and SHARD_MIN=50 to avoid the most obvious early shards.
